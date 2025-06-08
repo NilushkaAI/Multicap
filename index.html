@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Capture App</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="style.css">
+    <!-- JSZip CDN for creating ZIP files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- jsPDF CDN for creating PDF files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="section-header">Screen Capture Tool</h1>
+
+        <div class="button-group">
+            <button id="start-capture-btn" class="action-button primary-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-monitor"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+                Start Screen Capture
+            </button>
+            <button id="capture-frame-btn" class="action-button secondary-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucude-camera"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5Z"/><circle cx="12" cy="13" r="3"/></svg>
+                Take Screenshot
+            </button>
+            <button id="select-crop-area-btn" class="action-button secondary-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-crop"><path d="M6.13 18.13L18 6l-2.06-2.06a2.5 2.5 0 0 0-3.54 0L6 10H4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2v4a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2l4-4"/></svg>
+                Select Crop Area
+            </button>
+            <button id="stop-capture-btn" class="action-button danger-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>
+                Stop Capture
+            </button>
+            <button id="download-all-zip-btn" class="action-button primary-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download-cloud"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v6"/><path d="m16 16-4 4-4-4"/></svg>
+                Download All as ZIP
+            </button>
+            <button id="download-all-pdf-btn" class="action-button primary-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="8" x2="16" y1="13" y2="13"/><line x1="8" x2="16" y1="17" y2="17"/><line x1="8" x2="12" y1="21" y2="21"/></svg>
+                Download as PDF
+            </button>
+            <button id="clear-screenshots-btn" class="action-button secondary-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash-2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                Clear Screenshots
+            </button>
+        </div>
+
+        <!-- Video preview container with cropping overlay -->
+        <div id="video-preview-container" class="relative overflow-hidden w-full max-h-[400px] border border-gray-300 rounded-lg bg-black hidden">
+            <video id="video-preview" autoplay playsinline class="w-full h-full object-contain"></video>
+            <div id="crop-overlay" class="absolute border-2 border-blue-500 bg-blue-500 bg-opacity-25 pointer-events-none hidden"></div>
+        </div>
+
+
+        <!-- The output preview section will now show the actual stream dimensions -->
+        <div id="screenshot-output-preview-container" class="mt-8 p-4 border border-gray-300 rounded-lg bg-gray-50 hidden">
+            <h2 class="section-header !text-base !mt-0 !mb-2">Current Screenshot Output Preview</h2>
+            <canvas id="screenshot-output-preview-canvas" class="w-full h-auto border border-gray-400 rounded-md"></canvas>
+            <p id="preview-dimensions-text" class="text-center text-sm text-gray-600 mt-2">Preview dimensions: --x--</p>
+        </div>
+
+        <h2 class="section-header">Captured Screenshots</h2>
+        <div id="screenshots-container">
+            <p>No screenshots captured yet. Start sharing your screen to begin!</p>
+        </div>
+    </div>
+
+    <!-- Message box for user feedback -->
+    <div id="message-box" class="message-box"></div>
+
+    <!-- Link to external JavaScript file -->
+    <script src="script.js"></script>
+</body>
+</html>
